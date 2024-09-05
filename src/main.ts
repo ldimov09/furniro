@@ -16,6 +16,7 @@ async function bootstrap() {
     },
   }));
 
+  app.enableCors({ origin: '*', methods: 'GET,HEAD,PUT,PATCH,POST,DELETE' });
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json());
 
