@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, UseInterceptors, UploadedFile, Patch, Query } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { Item } from './entities/item.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -30,8 +30,22 @@ export class ItemsController {
     }
 
     @Get()
-    async findAll(): Promise<Item[]> {
-        return this.itemService.findAll();
+    async findAll(
+        @Query('field') field: string, // Sorting field
+        @Query('order') order: string, // Sorting order
+        @Query('filterField') filterField: string, // Field to filter by
+        @Query('value') value: string, // Filter value
+        @Query('items') itemsPerPage = 10, // Number of items per page, default 10
+        @Query('page') page = 1, // Page number, default 1
+    ) {
+        return this.itemService.findAll({
+            field,
+            order,
+            filterField,
+            value,
+            itemsPerPage: +itemsPerPage,
+            page: +page,
+        });
     }
 
     @Get(':id')
@@ -39,7 +53,7 @@ export class ItemsController {
         return this.itemService.findOne(id);
     }
 
-    @Put(':id')
+    @Patch(':id')
     @UseInterceptors(FileInterceptor('coverPhoto', {
         storage: diskStorage({
             destination: './uploads',
@@ -59,5 +73,10 @@ export class ItemsController {
     @Delete(':id')
     async remove(@Param('id', ValidateMongoIdPipe) id: string): Promise<Item> {
         return this.itemService.remove(id);
+    }
+
+    @Get('category/:id')
+    async getByCategory(@Param('id', ValidateMongoIdPipe) id: string): Promise<Item[]> {
+        return this.itemService.getByCategory(id);
     }
 }
