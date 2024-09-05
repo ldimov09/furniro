@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, UseInterceptors, UploadedFile, Patch, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, UseInterceptors, UploadedFiles, UploadedFile, Patch, Query } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { Item } from './entities/item.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -12,8 +12,8 @@ export class ItemsController {
     constructor(private readonly itemService: ItemsService, private readonly itemImageService: ItemImageService) { }
 
     @Post()
-    @UseInterceptors(FilesInterceptor('coverPhoto', 10))
-    async create(@Body() createItemDto: CreateItemDto, @UploadedFile() files: Express.Multer.File[]) {
+    @UseInterceptors(FilesInterceptor('files', 10))
+    async create(@Body() createItemDto: CreateItemDto, @UploadedFiles() files: Express.Multer.File[]) {
         const newItem = await this.itemService.create(createItemDto);
         if (files && files.length > 0) {
             for (const file of files) {
@@ -61,14 +61,14 @@ export class ItemsController {
     ) {
         // Update the item
         const updatedItem = await this.itemService.update(id, updateItemDto);
-
+        await this.itemImageService.deleteByItemId(updatedItem._id);
         // If a file was uploaded, convert it to base64 and save the image
         if (files && files.length > 0) {
             for (const file of files) {
                 const base64Content = file.buffer.toString('base64'); // Convert each file to base64
                 await this.itemImageService.create({
-                itemId: updatedItem._id,
-                content: base64Content,
+                    itemId: updatedItem._id,
+                    content: base64Content,
                 });
             }
         }

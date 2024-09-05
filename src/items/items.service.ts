@@ -66,7 +66,7 @@ export class ItemsService {
         .exec();
 
         for(const item of items){
-            item['images'] = await this.itemImageService.findByItemId(item._id as string);  
+            item['images'] = await this.itemImageService.findByItemId(item._id);  
         }
         
         return items;
@@ -74,7 +74,7 @@ export class ItemsService {
 
     async findOne(id: string): Promise<Item> {
         const item = await this.itemModel.findById(id).populate("category", "name").exec();
-        item['images'] = await this.itemImageService.findByItemId(item._id as string);  
+        item['images'] = await this.itemImageService.findByItemId(item._id);  
         return item;
     }
 

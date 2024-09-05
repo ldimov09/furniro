@@ -49,4 +49,7 @@ export class CreateItemDto {
   @IsOptional()
   @IsMongoId()
   category?: string;
+
+  @IsOptional()
+  files?: string[];
 }

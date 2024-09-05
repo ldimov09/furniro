@@ -2,7 +2,7 @@ import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
 @Schema()
-export class ItemImage extends Document {
+export class ItemImage extends Document<string> {
   @Prop({ required: true })
   itemId: string;
 
