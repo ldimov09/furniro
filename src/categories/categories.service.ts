@@ -39,14 +39,13 @@ export class CategoriesService {
   }
 
   async remove(id: string): Promise<void> {
-    const result = await this.categoryModel.findByIdAndDelete(id).exec();
-    if (!result) {
-      throw new NotFoundException(`Category with ID ${id} not found`);
-    }
-
     const itemsInCategory = await this.itemModel.find({ category: id }).exec();
     if (itemsInCategory.length > 0) {
       throw new BadRequestException('Cannot delete category with items');
+    }
+    const result = await this.categoryModel.findByIdAndDelete(id).exec();
+    if (!result) {
+      throw new NotFoundException(`Category with ID ${id} not found`);
     }
   }
 }
