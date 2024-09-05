@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Item } from './entities/item.entity';
@@ -83,8 +83,18 @@ export class ItemsService {
     }
 
     async remove(id: string): Promise<Item> {
+        // Find the item first
+        const item = await this.itemModel.findById(id).exec();
+        if (!item) {
+          throw new NotFoundException('Item not found');
+        }
+    
+        // Delete all images associated with the item
+        await this.itemImageService.deleteByItemId(id);
+    
+        // Now delete the item itself
         return this.itemModel.findByIdAndDelete(id).exec();
-    }
+      }
 
     async getByCategory(categoryId: string): Promise<Item[]> {
         return this.itemModel.find({ category: categoryId }).populate("category", "name").exec();

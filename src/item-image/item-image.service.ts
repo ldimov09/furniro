@@ -19,4 +19,8 @@ export class ItemImageService {
   async remove(id: string): Promise<ItemImage> {
     return this.itemImageModel.findByIdAndDelete(id).exec();
   }
+
+  async deleteByItemId(itemId: string): Promise<void> {
+    await this.itemImageModel.deleteMany({ itemId }).exec();
+  }
 }
