@@ -8,44 +8,46 @@ import { Item } from 'src/items/entities/item.entity';
 
 @Injectable()
 export class CategoriesService {
-  constructor(
-    @InjectModel(Category.name) private categoryModel: Model<Category>,
-    @InjectModel(Item.name) private itemModel: Model<Item>  
-  ) { }
+    constructor(
+        @InjectModel(Category.name) private categoryModel: Model<Category>,
+        @InjectModel(Item.name) private itemModel: Model<Item>
+    ) { }
 
-  async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
-    const newCategory = new this.categoryModel(createCategoryDto);
-    return newCategory.save();
-  }
-
-  async findAll(): Promise<Category[]> {
-    return this.categoryModel.find().exec();
-  }
-
-  async findOne(id: string): Promise<Category> {
-    const category = await this.categoryModel.findById(id).exec();
-    if (!category) {
-      throw new NotFoundException(`Category with ID ${id} not found`);
+    async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
+        const newCategory = new this.categoryModel(createCategoryDto);
+        return newCategory.save();
     }
-    return category;
-  }
 
-  async update(id: string, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
-    const existingCategory = await this.categoryModel.findByIdAndUpdate(id, updateCategoryDto, { new: true }).exec();
-    if (!existingCategory) {
-      throw new NotFoundException(`Category with ID ${id} not found`);
+    async findAll(): Promise<Category[]> {
+        return this.categoryModel.find().exec();
     }
-    return existingCategory;
-  }
 
-  async remove(id: string): Promise<void> {
-    const itemsInCategory = await this.itemModel.find({ category: id }).exec();
-    if (itemsInCategory.length > 0) {
-      throw new BadRequestException('Cannot delete category with items');
+    async findOne(id: string): Promise<Category> {
+        const category = await this.categoryModel.findById(id).exec();
+        if (!category) {
+            throw new NotFoundException(`Category with ID ${id} not found`);
+        }
+        return category;
     }
-    const result = await this.categoryModel.findByIdAndDelete(id).exec();
-    if (!result) {
-      throw new NotFoundException(`Category with ID ${id} not found`);
+
+    async update(id: string, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
+        const existingCategory = await this.categoryModel.findByIdAndUpdate(id, updateCategoryDto, { new: true }).exec();
+        if (!existingCategory) {
+            throw new NotFoundException(`Category with ID ${id} not found`);
+        }
+        return existingCategory;
     }
-  }
+
+    async remove(id: string): Promise<void> {
+        const itemsInCategory = await this.itemModel.find({ category: id }).exec();
+        
+        if (itemsInCategory.length > 0) {
+            throw new BadRequestException('Cannot delete category with items');
+        }
+
+        const result = await this.categoryModel.findByIdAndDelete(id).exec();
+        if (!result) {
+            throw new NotFoundException(`Category with ID ${id} not found`);
+        }
+    }
 }

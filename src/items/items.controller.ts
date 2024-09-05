@@ -2,31 +2,28 @@ import { Controller, Get, Post, Body, Param, Delete, UseInterceptors, UploadedFi
 import { ItemsService } from './items.service';
 import { Item } from './entities/item.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { ValidateMongoIdPipe } from 'src/validate-mongo-id/validate-mongo-id.pipe';
+import { ItemImageService } from 'src/item-image/item-image.service';
 
 @Controller('items')
 export class ItemsController {
-    constructor(private readonly itemService: ItemsService) { }
+    constructor(private readonly itemService: ItemsService, private readonly itemImageService: ItemImageService) { }
 
     @Post()
-    @UseInterceptors(FileInterceptor('coverPhoto', {
-        storage: diskStorage({
-            destination: './uploads', // Directory where files will be saved
-            filename: (req, file, callback) => {
-                const filename = `${Date.now()}${extname(file.originalname)}`;
-                callback(null, filename);
-            },
-        }),
-    }))
+    @UseInterceptors(FileInterceptor('coverPhoto'))
     async create(@Body() createItemDto: CreateItemDto, @UploadedFile() file: Express.Multer.File) {
+        const newItem = await this.itemService.create(createItemDto);
         if (file) {
-            createItemDto.coverPhoto = file.filename;
+            const base64Content = file.buffer.toString('base64');
+            await this.itemImageService.create({
+                itemId: newItem._id,
+                content: base64Content,
+            });
         }
-        return this.itemService.create(createItemDto);
+
+        return newItem;
     }
 
     @Get()
@@ -54,20 +51,25 @@ export class ItemsController {
     }
 
     @Patch(':id')
-    @UseInterceptors(FileInterceptor('coverPhoto', {
-        storage: diskStorage({
-            destination: './uploads',
-            filename: (req, file, callback) => {
-                const filename = `${Date.now()}${extname(file.originalname)}`;
-                callback(null, filename);
-            },
-        }),
-    }))
-    async update(@Param('id', ValidateMongoIdPipe) id: string, @Body() updateItemDto: UpdateItemDto, @UploadedFile() file: Express.Multer.File) {
+    @UseInterceptors(FileInterceptor('file')) // Handle file upload for updating
+    async update(
+        @Param('id') id: string,
+        @Body() updateItemDto: UpdateItemDto,
+        @UploadedFile() file: Express.Multer.File,
+    ) {
+        // Update the item
+        const updatedItem = await this.itemService.update(id, updateItemDto);
+
+        // If a file was uploaded, convert it to base64 and save the image
         if (file) {
-            updateItemDto.coverPhoto = file.filename;
+            const base64Content = file.buffer.toString('base64'); // Convert to base64
+            await this.itemImageService.create({
+                itemId: updatedItem._id,
+                content: base64Content,
+            });
         }
-        return this.itemService.update(id, updateItemDto);
+
+        return updatedItem;
     }
 
     @Delete(':id')

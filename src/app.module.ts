@@ -9,6 +9,7 @@ import { CategoriesModule } from './categories/categories.module';
 import config from './config/keys';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { ItemImageModule } from './item-image/item-image.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { join } from 'path';
       rootPath: join(__dirname, '..', 'uploads'), // Path to your uploads directory
       serveRoot: '/uploads', // The route prefix to access the files
     }),
+    ItemImageModule,
   ],
   controllers: [AppController],
   providers: [

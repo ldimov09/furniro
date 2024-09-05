@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Item } from './entities/item.entity';
+import { ItemImageService } from 'src/item-image/item-image.service';
 
 @Injectable()
 export class ItemsService {
-    constructor(@InjectModel(Item.name) private readonly itemModel: Model<Item>) { }
+    constructor(
+        @InjectModel(Item.name) private readonly itemModel: Model<Item>,
+        private readonly itemImageService: ItemImageService,
+    ) { }
 
     async create(createItemDto: any): Promise<Item> {
         const newItem = new this.itemModel(createItemDto);
@@ -53,17 +57,25 @@ export class ItemsService {
           return items;
         }
 
-        return this.itemModel
-          .find(filter)
-          .populate('category', 'name')
-          .sort({ [sortField]: sortOrder })
-          .skip((page - 1) * itemsPerPage)
-          .limit(itemsPerPage)
-          .exec();
+        const items = await this.itemModel
+        .find(filter)
+        .populate('category', 'name')
+        .sort({ [sortField]: sortOrder })
+        .skip((page - 1) * itemsPerPage)
+        .limit(itemsPerPage)
+        .exec();
+
+        for(const item of items){
+            item['images'] = await this.itemImageService.findByItemId(item._id as string);  
+        }
+        
+        return items;
       }
 
     async findOne(id: string): Promise<Item> {
-        return this.itemModel.findById(id).populate("category", "name").exec();
+        const item = await this.itemModel.findById(id).populate("category", "name").exec();
+        item['images'] = await this.itemImageService.findByItemId(item._id as string);  
+        return item;
     }
 
     async update(id: string, updateItemDto: any): Promise<Item> {

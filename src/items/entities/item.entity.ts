@@ -35,6 +35,9 @@ export class Item extends Document {
 
     @Prop({ type: Types.ObjectId, ref: 'Category' })
     category: Types.ObjectId;
+
+    @Prop({ type: Types.ObjectId, ref: 'ItemImage' })
+    images?: Types.ObjectId[] | any;
 }
 
 export const ItemSchema = SchemaFactory.createForClass(Item);
