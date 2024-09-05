@@ -1,13 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './entities/category.entity';
+import { Item } from 'src/items/entities/item.entity';
 
 @Injectable()
 export class CategoriesService {
-  constructor(@InjectModel(Category.name) private categoryModel: Model<Category>) {}
+  constructor(
+    @InjectModel(Category.name) private categoryModel: Model<Category>,
+    @InjectModel(Item.name) private itemModel: Model<Item>  
+  ) { }
 
   async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
     const newCategory = new this.categoryModel(createCategoryDto);
@@ -38,6 +42,11 @@ export class CategoriesService {
     const result = await this.categoryModel.findByIdAndDelete(id).exec();
     if (!result) {
       throw new NotFoundException(`Category with ID ${id} not found`);
+    }
+
+    const itemsInCategory = await this.itemModel.find({ category: id }).exec();
+    if (itemsInCategory.length > 0) {
+      throw new BadRequestException('Cannot delete category with items');
     }
   }
 }

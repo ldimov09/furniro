@@ -13,11 +13,11 @@ export class ItemsService {
     }
 
     async findAll(): Promise<Item[]> {
-        return this.itemModel.find().exec();
+        return this.itemModel.find().populate("category", "name").exec();
     }
 
     async findOne(id: string): Promise<Item> {
-        return this.itemModel.findById(id).exec();
+        return this.itemModel.findById(id).populate("category", "name").exec();
     }
 
     async update(id: string, updateItemDto: any): Promise<Item> {

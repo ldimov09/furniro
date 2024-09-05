@@ -6,6 +6,7 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
+import { ValidateMongoIdPipe } from 'src/validate-mongo-id/validate-mongo-id.pipe';
 
 @Controller('items')
 export class ItemsController {
@@ -34,7 +35,7 @@ export class ItemsController {
     }
 
     @Get(':id')
-    async findOne(@Param('id') id: string): Promise<Item> {
+    async findOne(@Param('id', ValidateMongoIdPipe) id: string): Promise<Item> {
         return this.itemService.findOne(id);
     }
 
@@ -48,7 +49,7 @@ export class ItemsController {
             },
         }),
     }))
-    async update(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto, @UploadedFile() file: Express.Multer.File) {
+    async update(@Param('id', ValidateMongoIdPipe) id: string, @Body() updateItemDto: UpdateItemDto, @UploadedFile() file: Express.Multer.File) {
         if (file) {
             updateItemDto.coverPhoto = file.filename;
         }
@@ -56,7 +57,7 @@ export class ItemsController {
     }
 
     @Delete(':id')
-    async remove(@Param('id') id: string): Promise<Item> {
+    async remove(@Param('id', ValidateMongoIdPipe) id: string): Promise<Item> {
         return this.itemService.remove(id);
     }
 }
