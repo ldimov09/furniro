@@ -7,9 +7,18 @@ import { ValidationExceptionFilter } from './filters/validation-exception.filter
 import { MongooseModule } from '@nestjs/mongoose';
 import { CategoriesModule } from './categories/categories.module';
 import config from './config/keys';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
-  imports: [MongooseModule.forRoot(config.mongoURI), ItemsModule, CategoriesModule],
+  imports: [
+    MongooseModule.forRoot(config.mongoURI), ItemsModule,
+    CategoriesModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'), // Path to your uploads directory
+      serveRoot: '/uploads', // The route prefix to access the files
+    }),
+  ],
   controllers: [AppController],
   providers: [
     AppService,
