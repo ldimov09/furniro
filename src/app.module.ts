@@ -13,6 +13,7 @@ import { ItemImageModule } from './item-image/item-image.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { ReviewModule } from './review/review.module';
 import { CategoryImageModule } from './category-image/category-image.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { CategoryImageModule } from './category-image/category-image.module';
     FeedbackModule,
     ReviewModule,
     CategoryImageModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [
