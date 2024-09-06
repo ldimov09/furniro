@@ -5,12 +5,14 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './entities/category.entity';
 import { Item } from 'src/items/entities/item.entity';
+import { CategoryImageService } from 'src/category-image/category-image.service';
 
 @Injectable()
 export class CategoriesService {
     constructor(
         @InjectModel(Category.name) private categoryModel: Model<Category>,
-        @InjectModel(Item.name) private itemModel: Model<Item>
+        @InjectModel(Item.name) private itemModel: Model<Item>,
+        private readonly categoryImageService: CategoryImageService
     ) { }
 
     async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
@@ -18,8 +20,13 @@ export class CategoriesService {
         return newCategory.save();
     }
 
-    async findAll(): Promise<Category[]> {
-        return this.categoryModel.find().exec();
+    async findAll(): Promise<{ content: {}; categories: Category[]}> {
+        const categories = await this.categoryModel.find().exec();
+    	const content = {}
+        for (const category of categories) {
+            content[category._id]  = (await this.categoryImageService.findByCategoryId(category._id)).content;
+        }
+        return {content, categories};
     }
 
     async findOne(id: string): Promise<Category> {
