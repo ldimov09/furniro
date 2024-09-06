@@ -11,6 +11,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { ItemImageModule } from './item-image/item-image.module';
 import { FeedbackModule } from './feedback/feedback.module';
+import { ReviewModule } from './review/review.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { FeedbackModule } from './feedback/feedback.module';
     }),
     ItemImageModule,
     FeedbackModule,
+    ReviewModule,
   ],
   controllers: [AppController],
   providers: [

@@ -18,7 +18,7 @@ export class ItemsController {
     ]))
     async create(@Body() createItemDto: CreateItemDto, @UploadedFiles() files: { files?: Express.Multer.File[], coverPhoto?: Express.Multer.File[] }) {
         const newItem = await this.itemService.create(createItemDto);
-        console.log(files);
+
         if(files && files.coverPhoto![0]){
             const base64Content = files.coverPhoto[0].buffer.toString('base64'); // Convert each file to base64
             await this.itemImageService.create({
@@ -77,27 +77,28 @@ export class ItemsController {
     ) {
         // Update the item
         const updatedItem = await this.itemService.update(id, updateItemDto);
-        // If a file was uploaded, convert it to base64 and save the image
+        if((files && files.coverPhoto![0]) || (files && files.files && files.files.length > 0)){
+            await this.itemImageService.deleteByItemId(updatedItem._id);
+        }
+
+        if(files && files.coverPhoto![0]){
+            const base64Content = files.coverPhoto[0].buffer.toString('base64'); // Convert each file to base64
+            await this.itemImageService.create({
+                itemId: updatedItem._id,
+                type: "cover",
+                content: base64Content,
+            })
+        }
+
         if (files && files.files && files.files.length > 0) {
-            await this.itemImageService.deleteByItemId(id);
             for (const file of files.files) {
                 const base64Content = file.buffer.toString('base64'); // Convert each file to base64
                 await this.itemImageService.create({
-                    itemId: id,
+                    itemId: updatedItem._id,
                     type: "additional",
                     content: base64Content,
                 });
             }
-        }
-        
-        if(files && files.coverPhoto![0]){
-            await this.itemImageService.deleteByItemId(id);
-            const base64Content = files.coverPhoto[0].buffer.toString('base64'); // Convert each file to base64
-            await this.itemImageService.create({
-                itemId: id,
-                type: "cover",
-                content: base64Content,
-            })
         }
 
         return updatedItem;
