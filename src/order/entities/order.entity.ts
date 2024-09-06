@@ -31,6 +31,9 @@ export class Order extends Document<string> {
   @Prop({ required: true })
   email: string;
 
+  @Prop({ required: true })
+  paymentType: string;
+
   @Prop()
   additionalInformation?: string;
 

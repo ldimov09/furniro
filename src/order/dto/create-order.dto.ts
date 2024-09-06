@@ -1,6 +1,11 @@
-import { IsString, IsNotEmpty, IsOptional, IsEmail, IsArray, IsMongoId, IsNumber, ArrayNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEmail, IsArray, IsMongoId, IsNumber, ArrayNotEmpty, IsIn } from 'class-validator';
 
 export class CreateOrderDto {
+  @IsString()
+  @IsNotEmpty()
+  @IsIn(['cod', 'card'])
+  paymentType: string;
+
   @IsString()
   @IsNotEmpty()
   firstName: string;

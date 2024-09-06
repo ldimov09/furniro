@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Order } from './entities/order.entity';
@@ -6,6 +6,7 @@ import { Item } from '../items/entities/item.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import Stripe from 'stripe';
+import { MailService } from 'src/mail/mailer.service';
 
 @Injectable()
 export class OrderService {
@@ -13,6 +14,7 @@ export class OrderService {
         @InjectModel(Order.name) private readonly orderModel: Model<Order>,
         @InjectModel(Item.name) private readonly itemModel: Model<Item>,
         private readonly stripe: Stripe,
+        private readonly mailService: MailService,
     ) {
         this.stripe = new Stripe('sk_test_51PvzAQJcFUaTqIT7bwgpiSshPsWoeCY74YVvoWZmZSUSJWaqv6UWRM8MlUtmwNSzLMAFLVIBLtrIszfzAeskU0dK005iDFV2aa', {
             apiVersion: '2024-06-20',
@@ -60,10 +62,21 @@ export class OrderService {
         // Create the order with the updated item information
         const newOrder = new this.orderModel({
             ...createOrderDto,
-            items: orderItems
+            items: orderItems,
         });
-
+        
+        if(newOrder.paymentType === 'cod'){
+            const newCodOrder = new this.orderModel({
+                ...createOrderDto,
+                items: orderItems,
+            });
+            this.mailService.sendOrderConfirmation(newCodOrder.email, "Cash on delivery chosen")
+            newCodOrder.save();
+            return { order: newCodOrder, checkoutUrl: "" };
+        }
         newOrder.save();
+
+        this.mailService.sendOrderConfirmation(newOrder.email, "Stripe payment is pending")
 
         const session = await this.stripe.checkout.sessions.create({
             payment_method_types: ['card'],
@@ -81,7 +94,7 @@ export class OrderService {
             }),
             mode: 'payment',
             customer_email: createOrderDto.email,
-            success_url: 'https://your-frontend-domain.com/success?session_id={CHECKOUT_SESSION_ID}',
+            success_url: 'http://localhost:3000/order/success?session_id={CHECKOUT_SESSION_ID}',
             cancel_url: 'https://your-frontend-domain.com/cancel',
         });
 
@@ -102,5 +115,22 @@ export class OrderService {
 
     async remove(id: string): Promise<Order> {
         return this.orderModel.findByIdAndDelete(id).exec();
+    }
+
+    async handleSucess(checkoutSessionId: string, res: any){
+        let session;
+        try {
+            session = await this.stripe.checkout.sessions.retrieve(checkoutSessionId);
+        } catch (err){
+            throw new NotFoundException('Non-existent checkout session!'); 
+        }
+
+         
+        if(session.payment_status === "paid"){
+            this.mailService.sendOrderPaid(session.customer_email, "Payment paid online via Stripe");
+            return res.redirect('http://localhost:3000/success-page')
+        }else{
+            throw new BadRequestException('Payment not completed!');
+        }
     }
 }
