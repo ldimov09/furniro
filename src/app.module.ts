@@ -12,6 +12,7 @@ import { join } from 'path';
 import { ItemImageModule } from './item-image/item-image.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { ReviewModule } from './review/review.module';
+import { CategoryImageModule } from './category-image/category-image.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ReviewModule } from './review/review.module';
     ItemImageModule,
     FeedbackModule,
     ReviewModule,
+    CategoryImageModule,
   ],
   controllers: [AppController],
   providers: [
