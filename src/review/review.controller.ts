@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common'
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
+import { ValidateMongoIdPipe } from 'src/validate-mongo-id/validate-mongo-id.pipe';
 
 @Controller('reviews')
 export class ReviewController {
@@ -18,7 +19,7 @@ export class ReviewController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ValidateMongoIdPipe) id: string) {
     return this.reviewService.findOne(id);
   }
 
@@ -28,12 +29,12 @@ export class ReviewController {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
+  async update(@Param('id', ValidateMongoIdPipe) id: string, @Body() updateReviewDto: UpdateReviewDto) {
     return this.reviewService.update(id, updateReviewDto);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', ValidateMongoIdPipe) id: string) {
     return this.reviewService.remove(id);
   }
 }
