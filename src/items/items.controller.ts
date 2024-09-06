@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, Delete, UseInterceptors, UploadedFiles, UploadedFile, Patch, Query } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { Item } from './entities/item.entity';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { ValidateMongoIdPipe } from 'src/validate-mongo-id/validate-mongo-id.pipe';
@@ -12,14 +12,27 @@ export class ItemsController {
     constructor(private readonly itemService: ItemsService, private readonly itemImageService: ItemImageService) { }
 
     @Post()
-    @UseInterceptors(FilesInterceptor('files', 10))
-    async create(@Body() createItemDto: CreateItemDto, @UploadedFiles() files: Express.Multer.File[]) {
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'coverPhoto', maxCount: 1 },
+        { name: 'files', maxCount: 10 }
+    ]))
+    async create(@Body() createItemDto: CreateItemDto, @UploadedFiles() files: { files?: Express.Multer.File[], coverPhoto?: Express.Multer.File[] }) {
         const newItem = await this.itemService.create(createItemDto);
-        if (files && files.length > 0) {
-            for (const file of files) {
+        console.log(files);
+        if(files && files.coverPhoto![0]){
+            const base64Content = files.coverPhoto[0].buffer.toString('base64'); // Convert each file to base64
+            await this.itemImageService.create({
+                itemId: newItem._id,
+                type: "cover",
+                content: base64Content,
+            });
+        }
+        if (files && files.files && files.files.length > 0) {
+            for (const file of files.files) {
                 const base64Content = file.buffer.toString('base64'); // Convert each file to base64
                 await this.itemImageService.create({
                     itemId: newItem._id,
+                    type: "additional",
                     content: base64Content,
                 });
             }
@@ -53,26 +66,39 @@ export class ItemsController {
     }
 
     @Patch(':id')
-    @UseInterceptors(FilesInterceptor('files', 10)) // Handle file upload for updating
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'coverPhoto', maxCount: 1 },
+        { name: 'files', maxCount: 10 }
+    ]))
     async update(
         @Param('id') id: string,
         @Body() updateItemDto: UpdateItemDto,
-        @UploadedFile() files: Express.Multer.File[],
+        @UploadedFiles() files: { files?: Express.Multer.File[], coverPhoto?: Express.Multer.File[] }
     ) {
         // Update the item
         const updatedItem = await this.itemService.update(id, updateItemDto);
-        await this.itemImageService.deleteByItemId(updatedItem._id);
         // If a file was uploaded, convert it to base64 and save the image
-        if (files && files.length > 0) {
-            for (const file of files) {
+        if (files && files.files && files.files.length > 0) {
+            await this.itemImageService.deleteByItemId(id);
+            for (const file of files.files) {
                 const base64Content = file.buffer.toString('base64'); // Convert each file to base64
                 await this.itemImageService.create({
-                    itemId: updatedItem._id,
+                    itemId: id,
+                    type: "additional",
                     content: base64Content,
                 });
             }
         }
-
+        
+        if(files && files.coverPhoto![0]){
+            await this.itemImageService.deleteByItemId(id);
+            const base64Content = files.coverPhoto[0].buffer.toString('base64'); // Convert each file to base64
+            await this.itemImageService.create({
+                itemId: id,
+                type: "cover",
+                content: base64Content,
+            })
+        }
 
         return updatedItem;
     }

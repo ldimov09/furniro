@@ -7,6 +7,9 @@ export class ItemImage extends Document<string> {
   itemId: string;
 
   @Prop({ required: true })
+  type: string;
+
+  @Prop({ required: true })
   content: string; // Base64 string
 }
 

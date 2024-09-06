@@ -10,6 +10,7 @@ import config from './config/keys';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { ItemImageModule } from './item-image/item-image.module';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ItemImageModule } from './item-image/item-image.module';
       serveRoot: '/uploads', // The route prefix to access the files
     }),
     ItemImageModule,
+    FeedbackModule,
   ],
   controllers: [AppController],
   providers: [
