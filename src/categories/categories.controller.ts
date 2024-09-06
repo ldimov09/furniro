@@ -3,6 +3,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CategoriesService } from './categories.service';
 import { CategoryImageService } from '../category-image/category-image.service';
 import { CreateCategoryImageDto } from '../category-image/dto/create-category-image.dto';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Controller('categories')
 export class CategoriesController {
@@ -15,7 +17,7 @@ export class CategoriesController {
   @UseInterceptors(FileInterceptor('image'))
   @UsePipes(new ValidationPipe({ transform: true }))
   async create(
-    @Body() createCategoryDto: any, 
+    @Body() createCategoryDto: CreateCategoryDto, 
     @UploadedFile() file: Express.Multer.File
   ) {
     const newCategory = await this.categoryService.create(createCategoryDto);
@@ -37,7 +39,7 @@ export class CategoriesController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async update(
     @Param('id') id: string, 
-    @Body() updateCategoryDto: any, 
+    @Body() updateCategoryDto: UpdateCategoryDto, 
     @UploadedFile() file: Express.Multer.File
   ) {
     const updatedCategory = await this.categoryService.update(id, updateCategoryDto);

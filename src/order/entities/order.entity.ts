@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 import { Item } from '../../items/entities/item.entity';
 
 @Schema()
-export class Order extends Document {
+export class Order extends Document<string> {
   @Prop({ required: true })
   firstName: string;
 

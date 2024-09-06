@@ -8,12 +8,12 @@ export class ValidationExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const response = ctx.getResponse<Response>();
 
-    const validationErrors = exception.getResponse() as any;
+    const validationErrors = exception.getResponse();
 
     response.status(400).json({
       statusCode: 400,
       path: request.url,
-      errors: validationErrors.message || validationErrors,
+      errors: validationErrors,
     });
   }
 }

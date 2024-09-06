@@ -3,6 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Item } from './entities/item.entity';
 import { ItemImageService } from 'src/item-image/item-image.service';
+import { CreateItemDto } from './dto/create-item.dto';
+import { UpdateItemDto } from './dto/update-item.dto';
 
 @Injectable()
 export class ItemsService {
@@ -11,7 +13,7 @@ export class ItemsService {
         private readonly itemImageService: ItemImageService,
     ) { }
 
-    async create(createItemDto: any): Promise<Item> {
+    async create(createItemDto: CreateItemDto): Promise<Item> {
         const newItem = new this.itemModel(createItemDto);
         return newItem.save();
     }
@@ -26,7 +28,7 @@ export class ItemsService {
       }): Promise<Item[]> {
         const { field, order, filterField, value, itemsPerPage, page } = options;
 
-        const filter: any = {};
+        const filter = {};
         if (filterField && value) {
           filter[filterField] = new RegExp(value, 'i');
         }
@@ -78,7 +80,7 @@ export class ItemsService {
         return item;
     }
 
-    async update(id: string, updateItemDto: any): Promise<Item> {
+    async update(id: string, updateItemDto: UpdateItemDto): Promise<Item> {
         return this.itemModel.findByIdAndUpdate(id, updateItemDto, { new: true }).exec();
     }
 

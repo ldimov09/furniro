@@ -9,7 +9,10 @@ import { ItemImageService } from 'src/item-image/item-image.service';
 
 @Controller('items')
 export class ItemsController {
-    constructor(private readonly itemService: ItemsService, private readonly itemImageService: ItemImageService) { }
+    constructor(
+        private readonly itemService: ItemsService, 
+        private readonly itemImageService: ItemImageService,
+    ) { }
 
     @Post()
     @UseInterceptors(FileFieldsInterceptor([

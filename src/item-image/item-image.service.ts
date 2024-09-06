@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { ItemImage } from './entities/item-image.entity';
+import { CreateItemImageDto } from './dto/create-item-image.dto';
 
 @Injectable()
 export class ItemImageService {
   constructor(@InjectModel(ItemImage.name) private readonly itemImageModel: Model<ItemImage>) {}
 
-  async create(createItemImageDto: any): Promise<ItemImage> {
+  async create(createItemImageDto: CreateItemImageDto): Promise<ItemImage> {
     const newItemImage = new this.itemImageModel(createItemImageDto);
     return newItemImage.save();
   }
